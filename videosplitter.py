@@ -3,6 +3,7 @@ import os
 import cv2
 import tkinter as tk
 from tkinter import *
+from tkinter import filedialog
 
 def splitter():
 
@@ -18,11 +19,10 @@ def splitter():
 
     framefreq = entry_widget_3.get()
     
-    print(savepath)
+    print("savepath :" + savepath)
 
-    print(entrypath)
-
-    print(type(framefreq))
+    print("entrypath :" + entrypath)
+    
     try:
         video = cv2.VideoCapture(entrypath)
     except:
@@ -36,11 +36,21 @@ def splitter():
         success, image = video.read()
         count +=1
         if (count % int(framefreq) == 0):
-            cv2.imwrite(os.path.join(savepath, '%d.jpg' % filecount), image)
-            print('wrote frame %d' % count)
-            filecount += 1
+            laplacian_var = cv2.Laplacian(image, cv2.CV_64F).var()
+            print(laplacian_var)
+            if (laplacian_var > 110): # make this an average?
+                cv2.imwrite(os.path.join(savepath, '%d.jpg' % filecount), image)
+                print('wrote frame %d' % count)
+                filecount += 1
+            else:
+                print('image rejected due to high blur')
             
     print('done')
+
+def browser():
+    global entrypath
+    entrypath = filedialog.askopenfilename(initialdir = "/")
+    entry_widget_1.insert(0,entrypath)
 
 window = Tk()
 
@@ -60,8 +70,11 @@ framefreq = tk.StringVar()
 entry_widget_3 = tk.Entry(window, textvariable=framefreq)
 entry_widget_3.pack()
 
-btn = Button(window, text="Start Program", font=("Arial Bold", 12), command = splitter)
-btn.pack()
+startbtn = Button(window, text="Start Program", font=("Arial Bold", 12), command = splitter)
+startbtn.pack()
+
+broswebtn = Button(window, text="Browse for file", font=("Arial Bold", 12), command = browser)
+broswebtn.pack()
 
 
 text = Label(window, text="Path to Video")
